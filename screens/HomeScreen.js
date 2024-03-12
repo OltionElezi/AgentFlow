@@ -76,7 +76,7 @@ const HomeScreen = () => {
         size={24}
         color="black"
       />
-      {/* Last Change */}
+      {/* Last Change on home screen */}
       <MaterialIcons
         onPress={() => navigation.navigate("CreateCard")}
         name="add"
