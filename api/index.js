@@ -34,7 +34,6 @@ app.listen(port, () => {
 });
 
 const User = require("./models/user");
-const Message = require("./models/message");
 const Card = require("./models/cardDetails");
 
 //endpoint for registration of the user
@@ -43,7 +42,15 @@ app.post("/register", (req, res) => {
   const { name, email, typeofUser, password, image } = req.body;
 
   // create a new User object
-  const newUser = new User({ name, email, typeofUser, password, image });
+  // create a new User object
+  const newUser = new User({
+    name,
+    email,
+    typeofUser,
+    password,
+    image,
+    sentFriendRequests: [],
+  });
 
   // save the user to the database
   newUser
@@ -219,27 +226,27 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-//endpoint to post Messages and store it in the backend
-app.post("/messages", upload.single("imageFile"), async (req, res) => {
-  try {
-    const { senderId, recepientId, messageType, messageText } = req.body;
+// //endpoint to post Messages and store it in the backend
+// app.post("/messages", upload.single("imageFile"), async (req, res) => {
+//   try {
+//     const { senderId, recepientId, messageType, messageText } = req.body;
 
-    const newMessage = new Message({
-      senderId,
-      recepientId,
-      messageType,
-      message: messageText,
-      timestamp: new Date(),
-      imageUrl: messageType === "image" ? req.file.path : null,
-    });
+//     const newMessage = new Message({
+//       senderId,
+//       recepientId,
+//       messageType,
+//       message: messageText,
+//       timestamp: new Date(),
+//       imageUrl: messageType === "image" ? req.file.path : null,
+//     });
 
-    await newMessage.save();
-    res.status(200).json({ message: "Message sent Successfully" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+//     await newMessage.save();
+//     res.status(200).json({ message: "Message sent Successfully" });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
 ///endpoint to get the userDetails to design the chat Room header
 app.get("/user/:userId", async (req, res) => {
@@ -256,42 +263,42 @@ app.get("/user/:userId", async (req, res) => {
   }
 });
 
-//endpoint to fetch the messages between two users in the chatRoom
-app.get("/messages/:senderId/:recepientId", async (req, res) => {
-  try {
-    const { senderId, recepientId } = req.params;
+// //endpoint to fetch the messages between two users in the chatRoom
+// app.get("/messages/:senderId/:recepientId", async (req, res) => {
+//   try {
+//     const { senderId, recepientId } = req.params;
 
-    const messages = await Message.find({
-      $or: [
-        { senderId: senderId, recepientId: recepientId },
-        { senderId: recepientId, recepientId: senderId },
-      ],
-    }).populate("senderId", "_id name");
+//     const messages = await Message.find({
+//       $or: [
+//         { senderId: senderId, recepientId: recepientId },
+//         { senderId: recepientId, recepientId: senderId },
+//       ],
+//     }).populate("senderId", "_id name");
 
-    res.json(messages);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+//     res.json(messages);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
-//endpoint to delete the messages!
-app.post("/deleteMessages", async (req, res) => {
-  try {
-    const { messages } = req.body;
+// //endpoint to delete the messages!
+// app.post("/deleteMessages", async (req, res) => {
+//   try {
+//     const { messages } = req.body;
 
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ message: "invalid req body!" });
-    }
+//     if (!Array.isArray(messages) || messages.length === 0) {
+//       return res.status(400).json({ message: "invalid req body!" });
+//     }
 
-    await Message.deleteMany({ _id: { $in: messages } });
+//     await Message.deleteMany({ _id: { $in: messages } });
 
-    res.json({ message: "Message deleted successfully" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Internal Server" });
-  }
-});
+//     res.json({ message: "Message deleted successfully" });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ error: "Internal Server" });
+//   }
+// });
 
 app.get("/friend-requests/sent/:userId", async (req, res) => {
   try {

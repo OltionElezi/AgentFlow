@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useLayoutEffect, useContext, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { UserType } from "../UserContext";
@@ -19,16 +18,10 @@ const HomeScreen = () => {
     navigation.setOptions({
       headerTitle: "",
       headerLeft: () => (
-        <Text style={{ fontSize: 16, fontWeight: "bold" }}>Swift Chat</Text>
+        <Text style={{ fontSize: 16, fontWeight: "bold" }}>AgentFlow</Text>
       ),
       headerRight: () => (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Ionicons
-            onPress={() => navigation.navigate("Chats")}
-            name="chatbox-ellipses-outline"
-            size={24}
-            color="black"
-          />
           <MaterialIcons
             onPress={() => navigation.navigate("Friends")}
             name="people-outline"
@@ -51,6 +44,7 @@ const HomeScreen = () => {
         .get(`http://172.20.10.2:8000/users/${userId}`)
         .then((response) => {
           setUsers(response.data);
+          console.log(response.data.typeofUser, "USER FETCH");
         })
         .catch((error) => {
           console.log("error retrieving users", error);
@@ -70,19 +64,23 @@ const HomeScreen = () => {
       </View>
       <LogoutButton />
 
+      {/* home icon to see cards */}
       <MaterialCommunityIcons
         onPress={() => navigation.navigate("Card")}
         name="home-city"
         size={24}
         color="black"
       />
-      {/* Last Change on home screen */}
-      <MaterialIcons
-        onPress={() => navigation.navigate("CreateCard")}
-        name="add"
-        size={24}
-        color="black"
-      />
+
+      {/* + icon to add card */}
+      {User.typeofUser !== "agent" && (
+        <MaterialIcons
+          onPress={() => navigation.navigate("CreateCard")}
+          name="add"
+          size={24}
+          color="black"
+        />
+      )}
     </View>
   );
 };

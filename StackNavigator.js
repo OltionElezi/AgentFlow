@@ -6,8 +6,8 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import HomeScreen from "./screens/HomeScreen";
 import FriendsScreen from "./screens/FriendsScreen";
-import ChatsScreen from "./screens/ChatsScreen";
-import ChatMessagesScreen from "./screens/ChatMessagesScreen";
+// import ChatsScreen from "./screens/ChatsScreen";
+// import ChatMessagesScreen from "./screens/ChatMessagesScreen";
 import CardScreen from "./screens/CardScreen";
 import CreateCard from "./screens/CreateCard";
 
@@ -30,9 +30,9 @@ const StackNavigator = () => {
 
         <Stack.Screen name="Friends" component={FriendsScreen} />
 
-        <Stack.Screen name="Chats" component={ChatsScreen} />
+        {/* <Stack.Screen name="Chats" component={ChatsScreen} /> */}
 
-        <Stack.Screen name="Messages" component={ChatMessagesScreen} />
+        {/* <Stack.Screen name="Messages" component={ChatMessagesScreen} /> */}
         <Stack.Screen name="Card" component={CardScreen} />
         <Stack.Screen name="CreateCard" component={CreateCard} />
       </Stack.Navigator>

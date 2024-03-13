@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
   },
   calendar: {
-    type: String, // Change the type to String
+    type: String,
     required: true,
   },
 });
