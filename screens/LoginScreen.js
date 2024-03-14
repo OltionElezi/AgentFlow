@@ -1,22 +1,31 @@
 import {
   KeyboardAvoidingView,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
+  ScrollView,
   View,
+  Image,
+  Platform,
+  Switch,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import styles from "../styles/LoginScreen.styles";
+import Logo from "../assets/logo/AgentFlow.png";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [typeofUser, setTypeofUser] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigation = useNavigation();
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -25,7 +34,16 @@ const LoginScreen = () => {
         if (token) {
           navigation.replace("Home");
         } else {
-          // token not found , show the login screen itself
+          // token not found, show the login screen itself
+        }
+
+        const rememberMeValue = await AsyncStorage.getItem("rememberMe");
+        if (rememberMeValue) {
+          setRememberMe(true);
+          const savedEmail = await AsyncStorage.getItem("email");
+          const savedTypeofUser = await AsyncStorage.getItem("typeofUser");
+          setEmail(savedEmail || "");
+          setTypeofUser(savedTypeofUser || "");
         }
       } catch (error) {
         console.log("error", error);
@@ -34,7 +52,8 @@ const LoginScreen = () => {
 
     checkLoginStatus();
   }, []);
-  const handleLogin = () => {
+
+  const handleLogin = async () => {
     const user = {
       email: email,
       typeofUser: typeofUser,
@@ -43,138 +62,121 @@ const LoginScreen = () => {
 
     axios
       .post("http://172.20.10.2:8000/login", user)
-      .then((response) => {
+      .then(async (response) => {
         console.log(response);
         const token = response.data.token;
         AsyncStorage.setItem("authToken", token);
 
+        if (rememberMe) {
+          await AsyncStorage.setItem("rememberMe", "true");
+          await AsyncStorage.setItem("email", email);
+          await AsyncStorage.setItem("typeofUser", typeofUser);
+        } else {
+          AsyncStorage.removeItem("rememberMe");
+          AsyncStorage.removeItem("email");
+          AsyncStorage.removeItem("typeofUser");
+        }
+
         navigation.replace("Home");
       })
       .catch((error) => {
-        Alert.alert("Login Error", "Invalid email, type or password");
-        console.log("Login Error", error);
+        Alert.alert("Login Error", "Invalid email, type, or password");
       });
   };
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "white",
-        padding: 10,
-        alignItems: "center",
-      }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <KeyboardAvoidingView>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.logoContainer}>
+          <Image source={Logo} style={styles.logo} />
+        </View>
+        <Text style={styles.title}>AgentFlow</Text>
         <View
           style={{
-            marginTop: 100,
+            marginTop: 80,
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          <Text style={{ color: "tomato", fontSize: 17, fontWeight: "600" }}>
-            Sign In
-          </Text>
-
-          <Text style={{ fontSize: 17, fontWeight: "600", marginTop: 15 }}>
-            Sign In to Your Account
-          </Text>
+          <Text style={styles.headerText}>Sign In</Text>
+          <Text style={styles.subheaderText}>Sign In to Your Account</Text>
         </View>
 
-        <View style={{ marginTop: 50 }}>
+        <View style={styles.inputContainer}>
           <View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Email
-            </Text>
-
             <TextInput
               value={email}
               onChangeText={(text) => setEmail(text)}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
+              style={styles.textInput}
               placeholderTextColor={"gray"}
-              placeholder="enter your email"
+              placeholder="Email"
             />
           </View>
 
           <View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Type
-            </Text>
-
             <TextInput
               value={typeofUser}
               onChangeText={(text) => setTypeofUser(text)}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
+              style={styles.textInput}
               placeholderTextColor={"gray"}
-              placeholder="enter your type"
+              placeholder="Type"
             />
           </View>
 
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Password
-            </Text>
+          <View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                value={password}
+                onChangeText={(text) => setPassword(text)}
+                secureTextEntry={!showPassword}
+                style={styles.passwordInput}
+                placeholderTextColor={"gray"}
+                placeholder="Password"
+              />
+              <Pressable onPress={togglePasswordVisibility}>
+                <Feather
+                  name={showPassword ? "eye" : "eye-off"}
+                  size={22}
+                  color="gray"
+                  style={styles.passwordToggleIcon}
+                />
+              </Pressable>
+            </View>
+          </View>
 
-            <TextInput
-              value={password}
-              onChangeText={(text) => setPassword(text)}
-              secureTextEntry={true}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-              placeholderTextColor={"gray"}
-              placeholder="enter password"
+          <View style={styles.rememberMeContainer}>
+            <Switch
+              style={styles.rememberMeSwitch}
+              value={rememberMe}
+              onValueChange={(value) => setRememberMe(value)}
             />
+            <Text style={styles.rememberMeText}>Remember Me</Text>
           </View>
 
           <Pressable
             onPress={handleLogin}
-            style={{
-              width: 200,
-              backgroundColor: "tomato",
-              padding: 15,
-              marginTop: 50,
-              marginLeft: "auto",
-              marginRight: "auto",
-              borderRadius: 6,
-            }}
+            style={({ pressed }) => [
+              styles.loginButton,
+              { backgroundColor: pressed ? "#FDA403" : "tomato" }, // Change the background color when pressed
+            ]}
           >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 16,
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              Login
-            </Text>
+            <Text style={styles.loginButtonText}>Login</Text>
           </Pressable>
 
           <Pressable
             onPress={() => navigation.navigate("Register")}
-            style={{ marginTop: 15 }}
+            style={styles.signUpTextContainer}
           >
-            <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>
-              Dont't have an account?{" "}
+            <Text style={styles.signUpText}>
+              Don't have an account?{" "}
               <Text
-                style={{ textDecorationLine: "underline", color: "tomato" }}
+                style={styles.signUpLink}
                 onPress={() => navigation.navigate("Register")}
               >
                 Sign Up
@@ -182,11 +184,9 @@ const LoginScreen = () => {
             </Text>
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default LoginScreen;
-
-const styles = StyleSheet.create({});

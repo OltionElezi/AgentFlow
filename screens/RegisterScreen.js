@@ -180,15 +180,12 @@ const RegisterScreen = () => {
 
           <Pressable
             onPress={handleRegister}
-            style={{
-              width: 200,
-              backgroundColor: "tomato",
-              padding: 15,
-              marginTop: 50,
-              marginLeft: "auto",
-              marginRight: "auto",
-              borderRadius: 6,
-            }}
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed ? "#FDA403" : "tomato",
+              },
+              styles.registerButton, // Add additional styles from the styles.registerButton
+            ]}
           >
             <Text
               style={{
@@ -227,4 +224,13 @@ const RegisterScreen = () => {
 
 export default RegisterScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  registerButton: {
+    width: 200,
+    padding: 15,
+    marginTop: 50,
+    marginLeft: "auto",
+    marginRight: "auto",
+    borderRadius: 6,
+  },
+});
