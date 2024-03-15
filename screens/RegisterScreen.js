@@ -6,7 +6,10 @@ import {
   KeyboardAvoidingView,
   Pressable,
   Alert,
+  ScrollView,
+  Platform,
 } from "react-native";
+
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
@@ -16,18 +19,36 @@ const RegisterScreen = () => {
   const [typeofUser, setTypeofUser] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [image, setImage] = useState("");
+  // const [image, setImage] = useState("");
   const navigation = useNavigation();
+
   const handleRegister = () => {
+    if (!name || !email || !typeofUser || !password) {
+      Alert.alert("Missing Information", "Please fill in all fields.");
+      return;
+    }
+    if (!email.includes("@")) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 8 || !/[a-zA-Z]/.test(password)) {
+      Alert.alert(
+        "Invalid Password",
+        "Password must be at least 8 characters long and contain at least one letter."
+      );
+      return;
+    }
+
     const user = {
       name: name,
       email: email,
       typeofUser: typeofUser,
       password: password,
-      image: image,
+      // image: image,
     };
 
-    // send a POST  request to the backend API to register the user
+    // send a POST request to the backend API to register the user
     axios
       .post("http://172.20.10.2:8000/register", user)
       .then((response) => {
@@ -41,6 +62,8 @@ const RegisterScreen = () => {
         setTypeofUser("");
         setPassword("");
         setImage("");
+        // Navigate to the login screen and pass the registered email
+        navigation.navigate("Login");
       })
       .catch((error) => {
         Alert.alert(
@@ -50,187 +73,168 @@ const RegisterScreen = () => {
         console.log("registration failed", error);
       });
   };
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "white",
-        padding: 10,
-        alignItems: "center",
-      }}
-    >
-      <KeyboardAvoidingView>
-        <View
-          style={{
-            marginTop: 100,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "tomato", fontSize: 17, fontWeight: "600" }}>
-            Register
-          </Text>
 
-          <Text style={{ fontSize: 17, fontWeight: "600", marginTop: 15 }}>
-            Create New Account
-          </Text>
+  const showInfoAlert = () => {
+    Alert.alert(
+      "Information",
+      "Lloji i userit qe deshironi te jeni per te menaxhuar"
+    );
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.select({ ios: 0, android: 0 })} // Adjust this value as needed
+    >
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View>
+          <Text style={styles.headerText}>Register</Text>
+          <Text style={styles.subheaderText}>Create New Account</Text>
         </View>
 
-        <View style={{ marginTop: 50 }}>
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Name
-            </Text>
-
+        <View style={styles.formContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.labelText}>Name</Text>
             <TextInput
               value={name}
               onChangeText={(text) => setName(text)}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-              placeholderTextColor={"gray"}
-              placeholder="your name"
+              style={styles.textInput}
+              placeholder="Your name"
             />
           </View>
 
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Email
-            </Text>
-
+          <View style={styles.inputContainer}>
+            <Text style={styles.labelText}>Email</Text>
             <TextInput
               value={email}
               onChangeText={(text) => setEmail(text)}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-              placeholderTextColor={"gray"}
-              placeholder="your email"
+              style={styles.textInput}
+              placeholder="Your email"
             />
           </View>
 
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Type
-            </Text>
-
-            <TextInput
-              value={typeofUser}
-              onChangeText={(text) => setTypeofUser(text)}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-              placeholderTextColor={"gray"}
-              placeholder="your type"
-            />
+          <View style={styles.inputContainer}>
+            <Text style={styles.labelText}>Type</Text>
+            <View style={styles.typeInputContainer}>
+              <TextInput
+                value={typeofUser}
+                onChangeText={(text) => setTypeofUser(text)}
+                style={styles.textInput}
+                placeholder="Your type"
+              />
+              <Pressable onPress={showInfoAlert}>
+                <Text style={styles.questionMark}>?</Text>
+              </Pressable>
+            </View>
           </View>
 
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Password
-            </Text>
-
+          <View style={styles.inputContainer}>
+            <Text style={styles.labelText}>Password</Text>
             <TextInput
               value={password}
               onChangeText={(text) => setPassword(text)}
+              style={styles.textInput}
+              placeholder="Your password"
               secureTextEntry={true}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-              placeholderTextColor={"gray"}
-              placeholder="your password"
             />
           </View>
 
-          <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Image
-            </Text>
-
-            <TextInput
-              value={image}
-              onChangeText={(text) => setImage(text)}
-              style={{
-                fontSize: email ? 18 : 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-              placeholderTextColor={"gray"}
-              placeholder="your image"
-            />
-          </View>
-
-          <Pressable
-            onPress={handleRegister}
-            style={({ pressed }) => [
-              {
-                backgroundColor: pressed ? "#FDA403" : "tomato",
-              },
-              styles.registerButton, // Add additional styles from the styles.registerButton
-            ]}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 16,
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              Register
-            </Text>
+          <Pressable onPress={handleRegister} style={styles.registerButton}>
+            <Text style={styles.buttonText}>Register</Text>
           </Pressable>
 
           <Pressable
             onPress={() => navigation.goBack()}
-            style={{ marginTop: 15 }}
+            style={styles.signInContainer}
           >
-            {/* <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>
-              Already Have an account? Sign in
-            </Text> */}
-            <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>
-              Already Have an account?{" "}
-              <Text
-                style={{ textDecorationLine: "underline", color: "tomato" }}
-                onPress={() => navigation.goBack()}
-              >
-                Sign In
-              </Text>
+            <Text style={styles.signInText}>
+              Already have an account?{" "}
+              <Text style={styles.signInLink}>Sign in</Text>
             </Text>
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 10,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: "space-between",
+    margin: 50,
+  },
+  headerText: {
+    color: "tomato",
+    fontSize: 17,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  subheaderText: {
+    fontSize: 17,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 50,
+  },
+  formContainer: {
+    alignItems: "center",
+  },
+  inputContainer: {
+    marginBottom: 20,
+    width: "80%",
+  },
+  labelText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "gray",
+    marginBottom: 5,
+  },
+  textInput: {
+    fontSize: 18,
+    borderBottomColor: "gray",
+    borderBottomWidth: 1,
+    width: "100%",
+    paddingVertical: 5,
+  },
+  typeInputContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  questionMark: {
+    fontSize: 22,
+  },
   registerButton: {
     width: 200,
+    backgroundColor: "tomato",
     padding: 15,
-    marginTop: 50,
-    marginLeft: "auto",
-    marginRight: "auto",
     borderRadius: 6,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  signInContainer: {
+    marginTop: 20,
+  },
+  signInText: {
+    textAlign: "center",
+    color: "gray",
+    fontSize: 16,
+  },
+  signInLink: {
+    textDecorationLine: "underline",
+    color: "tomato",
   },
 });

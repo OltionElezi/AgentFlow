@@ -1,12 +1,17 @@
 // styles/LoginScreen.styles.js
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+const windowWidth = Dimensions.get("window").width;
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
-    padding: 10,
-    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    marginBottom: 25,
+    justifyContent: "space-between",
   },
   headerText: {
     color: "tomato",
@@ -26,6 +31,8 @@ export default StyleSheet.create({
   textInput: {
     fontSize: 18,
     borderColor: "gray",
+    marginLeft: "auto",
+    marginRight: "auto",
     borderWidth: 1,
     borderRadius: 6,
     padding: 10,
@@ -34,28 +41,24 @@ export default StyleSheet.create({
   },
   passwordContainer: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    marginLeft: "auto",
+    marginRight: "auto",
     borderColor: "gray",
     borderWidth: 1,
     borderRadius: 6,
     padding: 10,
-    marginVertical: 10,
+    // marginVertical: 10,
     width: 300,
   },
   passwordInput: {
     fontSize: 18,
-    flex: 1,
-    marginRight: 10,
-  },
-  passwordToggleIcon: {
-    marginLeft: 10,
   },
   loginButton: {
-    width: 200,
+    width: 250,
     backgroundColor: "tomato",
-    padding: 15,
-    marginTop: 100,
+    marginTop: windowWidth < 400 ? 50 : 120,
+    height: 50,
     borderRadius: 6,
     marginLeft: "auto",
     marginRight: "auto",
@@ -63,11 +66,13 @@ export default StyleSheet.create({
   loginButtonText: {
     color: "white",
     fontSize: 16,
+    marginTop: "auto",
+    marginBottom: "auto",
     fontWeight: "bold",
     textAlign: "center",
   },
   signUpTextContainer: {
-    marginTop: 15,
+    marginTop: 10,
   },
   signUpText: {
     textAlign: "center",
@@ -85,8 +90,8 @@ export default StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    width: 200,
-    height: 200,
+    width: windowWidth < 400 ? 150 : 200,
+    height: windowWidth < 400 ? 150 : 200,
     resizeMode: "contain",
   },
   title: {
@@ -97,6 +102,8 @@ export default StyleSheet.create({
   },
   rememberMeContainer: {
     flexDirection: "row",
+    marginLeft: "auto",
+    marginRight: "auto",
     alignItems: "center",
     marginTop: 20,
   },

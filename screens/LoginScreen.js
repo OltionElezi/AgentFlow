@@ -20,7 +20,6 @@ import Logo from "../assets/logo/AgentFlow.png";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
-  const [typeofUser, setTypeofUser] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -41,9 +40,8 @@ const LoginScreen = () => {
         if (rememberMeValue) {
           setRememberMe(true);
           const savedEmail = await AsyncStorage.getItem("email");
-          const savedTypeofUser = await AsyncStorage.getItem("typeofUser");
+
           setEmail(savedEmail || "");
-          setTypeofUser(savedTypeofUser || "");
         }
       } catch (error) {
         console.log("error", error);
@@ -56,7 +54,7 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     const user = {
       email: email,
-      typeofUser: typeofUser,
+
       password: password,
     };
 
@@ -70,11 +68,9 @@ const LoginScreen = () => {
         if (rememberMe) {
           await AsyncStorage.setItem("rememberMe", "true");
           await AsyncStorage.setItem("email", email);
-          await AsyncStorage.setItem("typeofUser", typeofUser);
         } else {
           AsyncStorage.removeItem("rememberMe");
           AsyncStorage.removeItem("email");
-          AsyncStorage.removeItem("typeofUser");
         }
 
         navigation.replace("Home");
@@ -89,10 +85,11 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.select({ ios: 0, android: 0 })} // Adjust this value as needed
     >
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.logoContainer}>
           <Image source={Logo} style={styles.logo} />
         </View>
@@ -106,6 +103,21 @@ const LoginScreen = () => {
         >
           <Text style={styles.headerText}>Sign In</Text>
           <Text style={styles.subheaderText}>Sign In to Your Account</Text>
+          <Text style={styles.signUpText}>or</Text>
+          <Pressable
+            onPress={() => navigation.navigate("Register")}
+            style={styles.signUpTextContainer}
+          >
+            <Text style={styles.signUpText}>
+              Don't have an account?{" "}
+              <Text
+                style={styles.signUpLink}
+                onPress={() => navigation.navigate("Register")}
+              >
+                Sign Up
+              </Text>
+            </Text>
+          </Pressable>
         </View>
 
         <View style={styles.inputContainer}>
@@ -116,16 +128,6 @@ const LoginScreen = () => {
               style={styles.textInput}
               placeholderTextColor={"gray"}
               placeholder="Email"
-            />
-          </View>
-
-          <View>
-            <TextInput
-              value={typeofUser}
-              onChangeText={(text) => setTypeofUser(text)}
-              style={styles.textInput}
-              placeholderTextColor={"gray"}
-              placeholder="Type"
             />
           </View>
 
@@ -167,21 +169,6 @@ const LoginScreen = () => {
             ]}
           >
             <Text style={styles.loginButtonText}>Login</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => navigation.navigate("Register")}
-            style={styles.signUpTextContainer}
-          >
-            <Text style={styles.signUpText}>
-              Don't have an account?{" "}
-              <Text
-                style={styles.signUpLink}
-                onPress={() => navigation.navigate("Register")}
-              >
-                Sign Up
-              </Text>
-            </Text>
           </Pressable>
         </View>
       </ScrollView>

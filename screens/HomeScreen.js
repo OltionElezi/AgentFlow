@@ -1,4 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import {
+  StyleSheet,
+  Dimensions,
+  Image,
+  Text,
+  View,
+  ScrollView,
+} from "react-native";
 import React, { useLayoutEffect, useContext, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -9,7 +16,9 @@ import jwt_decode from "jwt-decode";
 import axios from "axios";
 import User from "../components/User";
 import LogoutButton from "./LogoutButton";
+import Logo from "../assets/logo/AgentFlow.png";
 
+const windowWidth = Dimensions.get("window").width;
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { userId, setUserId } = useContext(UserType);
@@ -18,7 +27,11 @@ const HomeScreen = () => {
     navigation.setOptions({
       headerTitle: "",
       headerLeft: () => (
-        <Text style={{ fontSize: 16, fontWeight: "bold" }}>AgentFlow</Text>
+        <View style={styles.logoContainer}>
+          <Image source={Logo} style={styles.logo} />
+
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>AgentFlow</Text>
+        </View>
       ),
       headerRight: () => (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -56,7 +69,7 @@ const HomeScreen = () => {
 
   console.log("users", users);
   return (
-    <View>
+    <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 10 }}>
         {users.map((item, index) => (
           <User key={index} item={item} />
@@ -81,10 +94,22 @@ const HomeScreen = () => {
           color="black"
         />
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 export default HomeScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  logoContainer: {
+    flexDirection: "row",
+    textAlign: "center",
+    alignItems: "center",
+  },
+  logo: {
+    // width: windowWidth < 400 ? 40 : 40, example of devices responsive
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
+  },
+});
