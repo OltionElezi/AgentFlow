@@ -31,7 +31,7 @@ const LoginScreen = () => {
         const token = await AsyncStorage.getItem("authToken");
 
         if (token) {
-          navigation.replace("Home");
+          navigation.navigate("Tabs");
         } else {
           // token not found, show the login screen itself
         }
@@ -73,7 +73,7 @@ const LoginScreen = () => {
           AsyncStorage.removeItem("email");
         }
 
-        navigation.replace("Home");
+        navigation.navigate("Tabs");
       })
       .catch((error) => {
         Alert.alert("Login Error", "Invalid email, type, or password");

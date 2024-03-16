@@ -67,7 +67,7 @@ const HomeScreen = () => {
     fetchUsers();
   }, []);
 
-  console.log("users", users);
+  // console.log("users", users);
   return (
     <ScrollView style={{ flex: 1 }}>
       <View style={{ padding: 10 }}>
