@@ -59,6 +59,7 @@ import FriendsScreen from "./screens/FriendsScreen";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import HomeScreenPrv from "./screens/HomeScreenPrv";
+import CardProfile from "./screens/CardProfile";
 // import { Card } from "react-native-paper";
 
 const Stack = createNativeStackNavigator();
@@ -82,21 +83,29 @@ const TabNavigator = () => (
 
         return <FontAwesome5 name={iconName} size={size} color={color} />;
       },
-      tabBarActiveTintColor: "tomato",
+
+      tabBarActiveTintColor: "#16FF00",
       tabBarInactiveTintColor: "gray",
-      tabBarStyle: [
-        {
-          display: "flex",
-        },
-        null,
-      ],
+      tabBarStyle: {
+        backgroundColor: "#000",
+        borderRadius: 30,
+        marginTop: 0,
+        marginBottom: 20,
+        marginHorizontal: 10,
+        paddingBottom: 10,
+        paddingTop: 10,
+      },
+      tabBarLabelStyle: {
+        display: "none",
+      },
     })}
   >
     <Tab.Screen
       name="Home"
-      component={HomeScreenPrv}
+      component={HomeScreen}
       options={{
         tabBarLabel: "Home",
+        headerShown: false,
       }}
     />
     <Tab.Screen
@@ -147,6 +156,11 @@ const App = () => {
           component={HomeScreen}
           options={{ title: "Home" }}
         /> */}
+        <Stack.Screen
+          name="CardProfile"
+          component={CardProfile}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Card"
           component={CardScreen}

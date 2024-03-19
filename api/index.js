@@ -215,7 +215,7 @@ const multer = require("multer");
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "files/"); // Specify the desired destination folder
+    cb(null, "../api/files/"); // Specify the desired destination folder
   },
   filename: function (req, file, cb) {
     // Generate a unique filename for the uploaded file
@@ -223,30 +223,7 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + "-" + file.originalname);
   },
 });
-
 const upload = multer({ storage: storage });
-
-// //endpoint to post Messages and store it in the backend
-// app.post("/messages", upload.single("imageFile"), async (req, res) => {
-//   try {
-//     const { senderId, recepientId, messageType, messageText } = req.body;
-
-//     const newMessage = new Message({
-//       senderId,
-//       recepientId,
-//       messageType,
-//       message: messageText,
-//       timestamp: new Date(),
-//       imageUrl: messageType === "image" ? req.file.path : null,
-//     });
-
-//     await newMessage.save();
-//     res.status(200).json({ message: "Message sent Successfully" });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
 
 ///endpoint to get the userDetails to design the chat Room header
 app.get("/user/:userId", async (req, res) => {
@@ -262,43 +239,6 @@ app.get("/user/:userId", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-// //endpoint to fetch the messages between two users in the chatRoom
-// app.get("/messages/:senderId/:recepientId", async (req, res) => {
-//   try {
-//     const { senderId, recepientId } = req.params;
-
-//     const messages = await Message.find({
-//       $or: [
-//         { senderId: senderId, recepientId: recepientId },
-//         { senderId: recepientId, recepientId: senderId },
-//       ],
-//     }).populate("senderId", "_id name");
-
-//     res.json(messages);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
-// //endpoint to delete the messages!
-// app.post("/deleteMessages", async (req, res) => {
-//   try {
-//     const { messages } = req.body;
-
-//     if (!Array.isArray(messages) || messages.length === 0) {
-//       return res.status(400).json({ message: "invalid req body!" });
-//     }
-
-//     await Message.deleteMany({ _id: { $in: messages } });
-
-//     res.json({ message: "Message deleted successfully" });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ error: "Internal Server" });
-//   }
-// });
 
 app.get("/friend-requests/sent/:userId", async (req, res) => {
   try {
@@ -337,29 +277,70 @@ app.get("/friends/:userId", (req, res) => {
   }
 });
 
-app.post("/card/register", upload.single("image"), (req, res) => {
-  const { description, location, calendar } = req.body;
-  const image = req.file.path; // get the path of the uploaded image
+// Assuming you have an Express app and the Card model defined
+// endpoint to create a new card
+app.post("/card/create", upload.single("image"), async (req, res) => {
+  try {
+    const { description, location, calendar } = req.body;
+    const image = req.file.filename; // get the filename of the uploaded image
 
-  // create a new Card object
-  const newCard = new Card({ description, location, image, calendar });
+    // create a new Card object
+    const newCard = new Card({ description, location, image, calendar });
 
-  // save the card to the database
-  newCard
-    .save()
-    .then(() => {
-      res.status(200).json({ message: "Card registered successfully" });
-    })
-    .catch((err) => {
-      console.log("Error registering card", err);
-      res.status(500).json({ message: "Error registering the card!" });
-    });
+    // save the card to the database
+    await newCard.save();
+
+    res.status(201).json(newCard);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 });
+
+// app.post("/card/register", upload.single("image"), (req, res) => {
+//   const { description, location, calendar } = req.body;
+//   const image = req.file.path; // get the path of the uploaded image
+
+//   // create a new Card object
+//   const newCard = new Card({ description, location, image, calendar });
+
+//   // save the card to the database
+//   newCard
+//     .save()
+//     .then(() => {
+//       res.status(200).json({ message: "Card registered successfully" });
+//     })
+//     .catch((err) => {
+//       console.log("Error registering card", err);
+//       res.status(500).json({ message: "Error registering the card!" });
+//     });
+// });
 
 // Get all cards
 app.get("/card/list", async (req, res) => {
   try {
     const cards = await Card.find();
+    res.json(cards);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Search for cards
+app.get("/card/search", async (req, res) => {
+  const { query } = req.query;
+
+  try {
+    // Use a regex pattern to find cards that match the query (case-insensitive)
+    const cards = await Card.find({
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { location: { $regex: query, $options: "i" } },
+      ],
+    });
+
     res.json(cards);
   } catch (error) {
     console.error(error);
