@@ -32,11 +32,15 @@ const HomeScreenPrv = () => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch("http://192.168.0.42:8000/card/list");
+      const response = await fetch("http://192.168.1.40:8000/card/list");
       const data = await response.json();
-      console.log(data, "data");
-      setData(data);
-      setSearchResults(data);
+      const updatedData = data.map((item) => ({
+        ...item,
+        image: { uri: item.image },
+      }));
+      console.log(updatedData, "data");
+      setData(updatedData);
+      setSearchResults(updatedData);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -46,10 +50,14 @@ const HomeScreenPrv = () => {
   const handleSearch = async () => {
     try {
       const response = await fetch(
-        `http://192.168.0.42:8000/card/search?query=${searchQuery}`
+        `http://192.168.1.40:8000/card/search?query=${searchQuery}`
       );
       const data = await response.json();
-      setSearchResults(data);
+      const updatedData = data.map((item) => ({
+        ...item,
+        image: `${item.image}`,
+      }));
+      setSearchResults(updatedData);
     } catch (error) {
       console.error("Error searching:", error);
     }
@@ -61,18 +69,13 @@ const HomeScreenPrv = () => {
 
   const renderCard = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleCardPress(item)}>
-      <Image source={item.image} style={styles.image} />
+      <Image source={item.image} style={{ width: 100, height: 100 }} />
       <View style={styles.cardContent}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.location}>{item.location}</Text>
       </View>
-      {/* <TouchableOpacity style={styles.addButton}> */}
-      {/* Add your icon here */}
-      {/* <Text style={{ color: "white" }}>+</Text> */}
-      {/* </TouchableOpacity> */}
     </TouchableOpacity>
   );
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -119,9 +122,9 @@ const HomeScreenPrv = () => {
       </View>
 
       <FlatList
-        data={data} // Use the data state here
+        data={data}
         renderItem={renderCard}
-        keyExtractor={(item) => item._id.toString()} // Use _id for the key
+        keyExtractor={(item) => item._id.toString()}
       />
     </View>
   );

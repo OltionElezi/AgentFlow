@@ -1,49 +1,3 @@
-// import { StyleSheet, Text, View } from "react-native";
-// import React from "react";
-// import { NavigationContainer } from "@react-navigation/native";
-// import { createNativeStackNavigator } from "@react-navigation/native-stack";
-// import LoginScreen from "./screens/LoginScreen";
-// import RegisterScreen from "./screens/RegisterScreen";
-// import HomeScreen from "./screens/HomeScreen";
-// import FriendsScreen from "./screens/FriendsScreen";
-// // import ChatsScreen from "./screens/ChatsScreen";
-// // import ChatMessagesScreen from "./screens/ChatMessagesScreen";
-// import CardScreen from "./screens/CardScreen";
-// import CreateCard from "./screens/CreateCard";
-
-// const StackNavigator = () => {
-//   const Stack = createNativeStackNavigator();
-//   return (
-//     <NavigationContainer>
-//       <Stack.Navigator>
-//         <Stack.Screen
-//           name="Login"
-//           component={LoginScreen}
-//           options={{ headerShown: false }}
-//         />
-//         <Stack.Screen
-//           name="Register"
-//           component={RegisterScreen}
-//           options={{ headerShown: false }}
-//         />
-//         <Stack.Screen name="Home" component={HomeScreen} />
-
-//         <Stack.Screen name="Friends" component={FriendsScreen} />
-
-//         {/* <Stack.Screen name="Chats" component={ChatsScreen} /> */}
-
-//         {/* <Stack.Screen name="Messages" component={ChatMessagesScreen} /> */}
-//         <Stack.Screen name="Card" component={CardScreen} />
-//         <Stack.Screen name="CreateCard" component={CreateCard} />
-//       </Stack.Navigator>
-//     </NavigationContainer>
-//   );
-// };
-
-// export default StackNavigator;
-
-// const styles = StyleSheet.create({});
-
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -61,6 +15,10 @@ import RegisterScreen from "./screens/RegisterScreen";
 import HomeScreenPrv from "./screens/HomeScreenPrv";
 import CardProfile from "./screens/CardProfile";
 // import { Card } from "react-native-paper";
+import CreateCardButton from "./screens/CreateCardButton";
+import CreateCardPrv from "./screens/CreateCardPrv";
+import Settings from "./screens/Settings";
+import EditProfile from "./screens/EditProfile";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -73,11 +31,16 @@ const TabNavigator = () => (
 
         if (route.name === "Home") {
           iconName = "home";
+        } else if (route.name === "CreateCardPrv") {
+          iconName = "plus";
+          return <FontAwesome5 name={iconName} size={size} color={color} />;
         } else if (route.name === "Profile") {
           iconName = "user";
         } else if (route.name === "Reservation") {
           iconName = "calendar-alt";
         } else if (route.name === "Notification") {
+          iconName = "bell";
+        } else if (route.name === "Settings") {
           iconName = "bell";
         }
 
@@ -102,12 +65,13 @@ const TabNavigator = () => (
   >
     <Tab.Screen
       name="Home"
-      component={HomeScreen}
+      component={HomeScreenPrv}
       options={{
         tabBarLabel: "Home",
         headerShown: false,
       }}
     />
+
     <Tab.Screen
       name="Profile"
       component={ProfileScreen}
@@ -115,6 +79,14 @@ const TabNavigator = () => (
         tabBarLabel: "Profile",
       }}
     />
+    <Tab.Screen
+      name="CreateCardPrv"
+      component={CreateCardPrv}
+      options={{
+        tabBarLabel: "CreateCard",
+      }}
+    />
+
     <Tab.Screen
       name="Reservation"
       component={ReservationScreen}
@@ -127,6 +99,13 @@ const TabNavigator = () => (
       component={NotificationScreen}
       options={{
         tabBarLabel: "Notification",
+      }}
+    />
+    <Tab.Screen
+      name="Settings"
+      component={Settings}
+      options={{
+        tabBarLabel: "Settings",
       }}
     />
   </Tab.Navigator>
@@ -173,6 +152,11 @@ const App = () => {
           options={{ title: "CreateCard" }}
         />
 
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfile}
+          options={{ title: "EditProfile" }}
+        />
         <Stack.Screen
           name="Friends"
           component={FriendsScreen}

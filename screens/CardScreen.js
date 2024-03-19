@@ -10,7 +10,7 @@ const CardScreen = () => {
 
   const fetchCardRequests = async () => {
     try {
-      const response = await axios.get(`http://172.20.10.2:8000/card/list`);
+      const response = await axios.get(`http://192.168.1.40:8000/card/list`);
       if (response.status === 200) {
         setCardRequests(response.data);
       }

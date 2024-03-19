@@ -111,7 +111,7 @@ const CardProfile = ({ route }) => {
           <AntDesign name="left" size={22} color="grey" />
         </View>
       </TouchableOpacity>
-      <Image source={item.image} style={styles.image} />
+      <Image source={{ uri: item.image }} style={styles.image} />
       <Animated.View
         {...panResponder.panHandlers}
         style={[

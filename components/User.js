@@ -11,7 +11,7 @@ const User = ({ item }) => {
     const fetchFriendRequests = async () => {
       try {
         const response = await fetch(
-          `http://172.20.10.2:8000/friend-requests/sent/${userId}`
+          `http://192.168.1.40:8000/friend-requests/sent/${userId}`
         );
 
         const data = await response.json();
@@ -32,7 +32,7 @@ const User = ({ item }) => {
     const fetchUserFriends = async () => {
       try {
         const response = await fetch(
-          `http://172.20.10.2:8000/friends/${userId}`
+          `http://192.168.1.40:8000/friends/${userId}`
         );
 
         const data = await response.json();
@@ -51,7 +51,7 @@ const User = ({ item }) => {
   }, []);
   const sendFriendRequest = async (currentUserId, selectedUserId) => {
     try {
-      const response = await fetch("http://172.20.10.2:8000/friend-request", {
+      const response = await fetch("http://192.168.1.40:8000/friend-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

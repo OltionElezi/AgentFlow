@@ -46,7 +46,7 @@ const CreateCard = () => {
       formData.append("location", location);
       formData.append("calendar", "12/07/2024-18/07/2024");
 
-      const response = await fetch("http://172.20.10.2:8000/card/register", {
+      const response = await fetch("http://192.168.1.40:8000/card/create", {
         method: "POST",
         body: formData,
       });

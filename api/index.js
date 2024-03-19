@@ -34,7 +34,7 @@ app.listen(port, () => {
 });
 
 const User = require("./models/user");
-const Card = require("./models/cardDetails");
+const CardDb = require("./models/cardDetails");
 
 //endpoint for registration of the user
 
@@ -215,7 +215,7 @@ const multer = require("multer");
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "../api/files/"); // Specify the desired destination folder
+    cb(null, "files/"); // Specify the desired destination folder
   },
   filename: function (req, file, cb) {
     // Generate a unique filename for the uploaded file
@@ -223,7 +223,34 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + "-" + file.originalname);
   },
 });
+
 const upload = multer({ storage: storage });
+
+//endpoint to post Messages and store it in the backend
+// app.js
+
+app.post("/card/create", upload.single("imageFile"), async (req, res) => {
+  try {
+    const { title, description, location, calendar } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const newCard = new CardDb({
+      image: req.file.path,
+      title,
+      description,
+      location,
+      calendar,
+    });
+
+    await newCard.save();
+    res.status(200).json({ message: "Card created successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 ///endpoint to get the userDetails to design the chat Room header
 app.get("/user/:userId", async (req, res) => {
@@ -277,49 +304,10 @@ app.get("/friends/:userId", (req, res) => {
   }
 });
 
-// Assuming you have an Express app and the Card model defined
-// endpoint to create a new card
-app.post("/card/create", upload.single("image"), async (req, res) => {
-  try {
-    const { description, location, calendar } = req.body;
-    const image = req.file.filename; // get the filename of the uploaded image
-
-    // create a new Card object
-    const newCard = new Card({ description, location, image, calendar });
-
-    // save the card to the database
-    await newCard.save();
-
-    res.status(201).json(newCard);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
-// app.post("/card/register", upload.single("image"), (req, res) => {
-//   const { description, location, calendar } = req.body;
-//   const image = req.file.path; // get the path of the uploaded image
-
-//   // create a new Card object
-//   const newCard = new Card({ description, location, image, calendar });
-
-//   // save the card to the database
-//   newCard
-//     .save()
-//     .then(() => {
-//       res.status(200).json({ message: "Card registered successfully" });
-//     })
-//     .catch((err) => {
-//       console.log("Error registering card", err);
-//       res.status(500).json({ message: "Error registering the card!" });
-//     });
-// });
-
 // Get all cards
 app.get("/card/list", async (req, res) => {
   try {
-    const cards = await Card.find();
+    const cards = await CardDb.find();
     res.json(cards);
   } catch (error) {
     console.error(error);
@@ -333,7 +321,7 @@ app.get("/card/search", async (req, res) => {
 
   try {
     // Use a regex pattern to find cards that match the query (case-insensitive)
-    const cards = await Card.find({
+    const cards = await CardDb.find({
       $or: [
         { title: { $regex: query, $options: "i" } },
         { description: { $regex: query, $options: "i" } },
@@ -353,7 +341,7 @@ app.get("/card/:id", (req, res) => {
   const cardId = req.params.id;
 
   // Find the card by ID in the database
-  Card.findById(cardId)
+  CardDb.findById(cardId)
     .then((card) => {
       if (!card) {
         return res.status(404).json({ message: "Card not found" });
@@ -373,7 +361,7 @@ app.put("/card/:id", async (req, res) => {
   const { description, location, image, calendar } = req.body;
 
   try {
-    const card = await Card.findById(cardId);
+    const card = await CardDb.findById(cardId);
     if (!card) {
       return res.status(404).json({ message: "Card not found" });
     }
