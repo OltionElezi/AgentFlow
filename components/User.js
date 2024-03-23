@@ -4,9 +4,11 @@ import { UserType } from "../UserContext";
 
 const User = ({ item }) => {
   const { userId, setUserId } = useContext(UserType);
+  const [typeofUser, setTypeofUser] = useContext(UserType);
   const [requestSent, setRequestSent] = useState(false);
   const [friendRequests, setFriendRequests] = useState([]);
   const [userFriends, setUserFriends] = useState([]);
+
   useEffect(() => {
     const fetchFriendRequests = async () => {
       try {

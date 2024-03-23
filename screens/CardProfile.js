@@ -65,7 +65,7 @@ const CardProfile = ({ route }) => {
         } else if (
           gestureState.dy > 100 &&
           isOpen.current &&
-          gestureState.y0 < windowHeight * 0.4
+          gestureState.y0 < windowHeight * 0.2
         ) {
           // User swiped down, close title section to original height
           isOpen.current = false;
@@ -78,7 +78,7 @@ const CardProfile = ({ route }) => {
         } else if (
           gestureState.dy > 100 &&
           !isOpen.current &&
-          gestureState.y0 < windowHeight * 0.4
+          gestureState.y0 < windowHeight * 0.2
         ) {
           // User swiped down, display "See more..."
           toggleDescription();
@@ -111,7 +111,7 @@ const CardProfile = ({ route }) => {
           <AntDesign name="left" size={22} color="grey" />
         </View>
       </TouchableOpacity>
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <Image source={require("../api/files/home1.jpeg")} style={styles.image} />
       <Animated.View
         {...panResponder.panHandlers}
         style={[
@@ -125,6 +125,8 @@ const CardProfile = ({ route }) => {
           },
         ]}
       >
+        <View style={styles.gripLine}></View>
+        <View style={styles.gripLine}></View>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.location}>
           <Icon name="map-marker" size={22} color="#5356FF" /> {item.location}
@@ -178,7 +180,14 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
   },
-
+  gripLine: {
+    height: 2,
+    backgroundColor: "#000",
+    marginVertical: 2,
+    marginTop: 2,
+    width: "20%",
+    alignSelf: "center",
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",

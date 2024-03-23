@@ -3,8 +3,18 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS, FONTS } from "../constants";
 import { MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Settings = ({ navigation }) => {
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("authToken");
+      navigation.replace("Login");
+    } catch (error) {
+      console.log("Error logging out", error);
+    }
+  };
+
   const navigateToEditProfile = () => {
     navigation.navigate("EditProfile");
   };
@@ -50,7 +60,7 @@ const Settings = ({ navigation }) => {
   };
 
   const logout = () => {
-    console.log("Logout");
+    handleLogout();
   };
 
   const accountItems = [
@@ -133,7 +143,7 @@ const Settings = ({ navigation }) => {
         backgroundColor: COLORS.white,
       }}
     >
-      <View
+      {/* <View
         style={{
           marginHorizontal: 12,
           flexDirection: "row",
@@ -155,12 +165,12 @@ const Settings = ({ navigation }) => {
         </TouchableOpacity>
 
         <Text style={{ ...FONTS.h3 }}>Settings</Text>
-      </View>
+      </View> */}
 
       <ScrollView style={{ marginHorizontal: 12 }}>
         {/* Account Settings */}
         <View style={{ marginBottom: 12 }}>
-          <Text style={{ ...FONTS.h4, marginVertical: 10 }}>Account</Text>
+          <Text style={{ ...FONTS.h4 }}>Account</Text>
           <View
             style={{
               borderRadius: 12,

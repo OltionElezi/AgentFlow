@@ -7,14 +7,13 @@ const CreateCardPrv = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [calendar, setCalendar] = useState("");
 
   useEffect(() => {
     getPermissionAsync();
   }, []);
 
   const getPermissionAsync = async () => {
-    const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       alert("Sorry, we need camera roll permissions to make this work!");
     }
@@ -28,7 +27,7 @@ const CreateCardPrv = () => {
       quality: 1,
     });
 
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setImage(result.uri);
     }
   };
@@ -38,31 +37,35 @@ const CreateCardPrv = () => {
       const formData = new FormData();
       formData.append("imageFile", {
         uri: image,
-        type: "image/png", // Change to image/png for PNG images
-        name: "image.png", // Change to .png extension
+        type: "image/jpg",
+        name: "image.jpg",
       });
       formData.append("title", title);
       formData.append("description", description);
       formData.append("location", location);
-      formData.append("calendar", calendar);
+
+      const headers = new Headers();
+      headers.append(
+        "Content-Type",
+        "multipart/form-data; boundary=<calculated when request is sent>"
+      );
 
       const uploadResponse = await fetch(
         "http://192.168.1.40:8000/card/create",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "multipart/form-data",
-            // Add any other headers here
-          },
+          headers: headers,
           body: formData,
         }
       );
+      console.log("Upload Response:", uploadResponse); // Log the response
       const data = await uploadResponse.json();
       console.log("Success:", data);
+
       // Handle success response
     } catch (error) {
       console.error("Error:", error);
-      console.log("Response Text:", await error.response.text());
+      console.log("Error Message:", error.message); // Corrected from error.response.text()
       // Handle error
     }
   };
@@ -96,12 +99,7 @@ const CreateCardPrv = () => {
         value={location}
         onChangeText={setLocation}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Calendar"
-        value={calendar}
-        onChangeText={setCalendar}
-      />
+
       <Button title="Register" onPress={handleSubmit} />
     </View>
   );

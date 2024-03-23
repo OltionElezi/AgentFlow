@@ -7,32 +7,35 @@ import {
   TextInput,
   Modal,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { COLORS, FONTS } from "../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { imagesDataURL } from "../constants/data";
-import DatePicker, { getFormatedDate } from "react-native-modern-datepicker";
+import { getFormatedDate } from "react-native-modern-datepicker";
+import DatePickerModal from "../components/DatePickerModal";
+import { UserContext } from "../UserContextData";
 
 const EditProfile = ({ navigation }) => {
+  const { user, setUser } = useContext(UserContext);
   const [selectedImage, setSelectedImage] = useState(imagesDataURL[0]);
-  const [name, setName] = useState("Melissa Peters");
-  const [email, setEmail] = useState("metperters@gmail.com");
-  const [password, setPassword] = useState("randompassword");
-  const [country, setCountry] = useState("Nigeria");
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [typeofUser, setType] = useState(user.typeofUser);
+  const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth);
+  const [password, setPassword] = useState(user.password);
+  const [country, setCountry] = useState(user.country);
 
   const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
-  const today = new Date();
-  const startDate = getFormatedDate(
-    today.setDate(today.getDate() + 1),
-    "YYYY/MM/DD"
+  const [selectedStartDate, setSelectedStartDate] = useState(
+    getFormatedDate(new Date())
   );
-  const [selectedStartDate, setSelectedStartDate] = useState("01/01/1990");
-  const [startedDate, setStartedDate] = useState("12/12/2023");
 
-  const handleChangeStartDate = (propDate) => {
-    setStartedDate(propDate);
+  const startDate = new Date();
+
+  const handleChangeStartDate = (date) => {
+    setSelectedStartDate(date);
   };
 
   const handleOnPressStartDate = () => {
@@ -47,72 +50,54 @@ const EditProfile = ({ navigation }) => {
       quality: 1,
     });
 
-    console.log(result);
+    // console.log(result);
 
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
     }
   };
 
-  function renderDatePicker() {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={openStartDatePicker}
-      >
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              margin: 20,
-              backgroundColor: COLORS.primary,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 20,
-              padding: 35,
-              width: "90%",
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 5,
-            }}
-          >
-            <DatePicker
-              mode="calendar"
-              minimumDate={startDate}
-              selected={startedDate}
-              onDateChanged={handleChangeStartDate}
-              onSelectedChange={(date) => setSelectedStartDate(date)}
-              options={{
-                backgroundColor: COLORS.primary,
-                textHeaderColor: "#469ab6",
-                textDefaultColor: COLORS.white,
-                selectedTextColor: COLORS.white,
-                mainColor: "#469ab6",
-                textSecondaryColor: COLORS.white,
-                borderColor: "rgba(122,146,165,0.1)",
-              }}
-            />
+  const handleSaveChanges = () => {
+    const userData = {
+      name,
+      email,
+      password,
+      typeofUser,
+      dateOfBirth: selectedStartDate,
+      country,
+    };
 
-            <TouchableOpacity onPress={handleOnPressStartDate}>
-              <Text style={{ ...FONTS.body3, color: COLORS.white }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-
+    fetch(`http://192.168.1.40:8000/user/${user._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          // If the update is successful, fetch the updated user data
+          fetch(`http://192.168.1.40:8000/user/${user._id}`)
+            .then((response) => response.json())
+            .then((data) => {
+              // Update the context with the updated user data
+              setUser(data);
+            })
+            .catch((error) => {
+              console.error("Error fetching updated user data:", error);
+            });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Success:", data);
+        // Handle success response here
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        // Handle error here
+      });
+  };
   return (
     <SafeAreaView
       style={{
@@ -121,35 +106,11 @@ const EditProfile = ({ navigation }) => {
         paddingHorizontal: 22,
       }}
     >
-      <View
-        style={{
-          marginHorizontal: 12,
-          flexDirection: "row",
-          justifyContent: "center",
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{
-            position: "absolute",
-            left: 0,
-          }}
-        >
-          <MaterialIcons
-            name="keyboard-arrow-left"
-            size={24}
-            color={COLORS.black}
-          />
-        </TouchableOpacity>
-
-        <Text style={{ ...FONTS.h3 }}>Edit Profile</Text>
-      </View>
-
       <ScrollView>
         <View
           style={{
             alignItems: "center",
-            marginVertical: 22,
+            marginVertical: 10,
           }}
         >
           <TouchableOpacity onPress={handleImageSelection}>
@@ -263,16 +224,14 @@ const EditProfile = ({ navigation }) => {
               />
             </View>
           </View>
-
           <View
             style={{
               flexDirection: "column",
               marginBottom: 6,
             }}
           >
-            <Text style={{ ...FONTS.h4 }}>Date or Birth</Text>
-            <TouchableOpacity
-              onPress={handleOnPressStartDate}
+            <Text style={{ ...FONTS.h4 }}>Type Of User</Text>
+            <View
               style={{
                 height: 44,
                 width: "100%",
@@ -284,9 +243,27 @@ const EditProfile = ({ navigation }) => {
                 paddingLeft: 8,
               }}
             >
-              <Text>{selectedStartDate}</Text>
-            </TouchableOpacity>
+              <TextInput
+                value={typeofUser}
+                onChangeText={(value) => setType(value)}
+                editable={true}
+              />
+            </View>
           </View>
+
+          <TouchableOpacity onPress={handleOnPressStartDate}>
+            <Text>You Birth Day</Text>
+            <Text>{selectedStartDate}</Text>
+          </TouchableOpacity>
+
+          <DatePickerModal
+            open={openStartDatePicker}
+            onClose={handleOnPressStartDate}
+            startDate={getFormatedDate(startDate)}
+            selectedDate={selectedStartDate}
+            onChangeDate={handleChangeStartDate}
+            setSelectedStartDate={setSelectedStartDate}
+          />
         </View>
 
         <View
@@ -324,6 +301,7 @@ const EditProfile = ({ navigation }) => {
             alignItems: "center",
             justifyContent: "center",
           }}
+          onPress={handleSaveChanges}
         >
           <Text
             style={{
@@ -334,8 +312,6 @@ const EditProfile = ({ navigation }) => {
             Save Change
           </Text>
         </TouchableOpacity>
-
-        {renderDatePicker()}
       </ScrollView>
     </SafeAreaView>
   );

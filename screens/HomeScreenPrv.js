@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   View,
   TextInput,
@@ -7,24 +7,97 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 import "react-native-get-random-values";
+import { Badge } from "react-native-elements";
 
-import { Ionicons } from "@expo/vector-icons";
-import Card from "../api/models/cardDetails";
+import { UserContext } from "../UserContextData";
 
 const HomeScreenPrv = () => {
   const navigation = useNavigation();
+  const { user } = useContext(UserContext);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [data, setData] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(2);
+  const windowHeight = Dimensions.get("window").height;
+  const [isFullOpen, setIsFullOpen] = useState(false);
+  const pan = useRef(new Animated.ValueXY()).current;
 
-  const loremIpsum = `Lorem ipsum dolor sit ajsdnl   Lorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametametL Lorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametLorem ipsum dolor sit ametorem ipsum dolor sit amet im ashaSDDD cosntasf FffSDLL DCOMSMSdlasa  consectetur adipiscing elit. Sed ut nisl eget velit fermentum commodo. Donec nec varius velit. Proin eget arcu sit amet justo efficitur sollicitudin. Mauris aliquet lectus in erat luctus, id venenatis nulla eleifend. Fusce non lacus at velit tincidunt feugiat nec id lorem. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Morbi et felis quis orci euismod mattis. Integer vitae turpis non lectus eleifend placerat vel nec quam. Nam sit amet tincidunt lectus. Suspendisse potenti. Proin rutrum, mi at ullamcorper congue, libero velit varius nulla, eu posuere lectus risus vitae risus. Curabitur quis urna eu leo posuere tempor.`; // Repeat or customize as needed
+  const isOpen = useRef(false);
+
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (evt, gestureState) => {
+      // Allow vertical movement only if the user is swiping and not clicking
+      return (
+        Math.abs(gestureState.moveX - gestureState.x0) > 5 ||
+        Math.abs(gestureState.moveY - gestureState.y0) > 5 ||
+        Math.abs(gestureState.moveX + gestureState.y0) < 5 ||
+        Math.abs(gestureState.moveY + gestureState.y0) < 5
+      );
+    },
+
+    onPanResponderMove: (evt, gestureState) => {
+      if (!isOpen.current) {
+        // Swiping up
+        if (gestureState.dy < -2) {
+          Animated.event([null, { dy: pan.y }], {
+            useNativeDriver: false,
+          })(evt, gestureState);
+        }
+        // Swiping down
+        else if (gestureState.dy > 0 && gestureState.y0 < windowHeight * 0.4) {
+          Animated.event([null, { dy: pan.y }], {
+            useNativeDriver: false,
+          })(evt, gestureState);
+        }
+      }
+    },
+
+    onPanResponderRelease: (e, gestureState) => {
+      if (Math.abs(gestureState.dy) > 5) {
+        // User scrolled
+        if (gestureState.dy < -100) {
+          setIsFullOpen(true);
+          // User swiped up, open title section to fullscreen
+          isOpen.current = true;
+          Animated.timing(pan, {
+            toValue: { x: 0, y: -windowHeight },
+            duration: 600,
+            useNativeDriver: false,
+          }).start();
+        } else if (
+          gestureState.dy > 100 &&
+          isOpen.current &&
+          gestureState.y0 < windowHeight * 0.2
+        ) {
+          // User swiped down, close title section to original height
+          isOpen.current = false;
+          Animated.timing(pan, {
+            toValue: { x: 0, y: 0 },
+            duration: 600,
+            useNativeDriver: false,
+          }).start();
+        } else if (
+          gestureState.dy > 100 &&
+          !isOpen.current &&
+          gestureState.y0 < windowHeight * 0.2
+        ) {
+          // User swiped down, display "See more..."
+          toggleDescription();
+        }
+      }
+    },
+  });
 
   useEffect(() => {
     fetchData();
@@ -49,15 +122,21 @@ const HomeScreenPrv = () => {
 
   const handleSearch = async () => {
     try {
-      const response = await fetch(
-        `http://192.168.1.40:8000/card/search?query=${searchQuery}`
-      );
-      const data = await response.json();
-      const updatedData = data.map((item) => ({
-        ...item,
-        image: `${item.image}`,
-      }));
-      setSearchResults(updatedData);
+      if (searchQuery.trim() === "") {
+        // If search query is empty, fetch all cards
+        fetchData();
+      } else {
+        const response = await fetch(
+          `http://192.168.1.40:8000/card/search?query=${searchQuery}`
+        );
+        const data = await response.json();
+        const updatedData = data.map((item) => ({
+          ...item,
+          image: `${item.image}`,
+        }));
+        setSearchResults(updatedData);
+        setData(updatedData);
+      }
     } catch (error) {
       console.error("Error searching:", error);
     }
@@ -69,27 +148,47 @@ const HomeScreenPrv = () => {
 
   const renderCard = ({ item }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleCardPress(item)}>
-      <Image source={item.image} style={{ width: 100, height: 100 }} />
+      <Image
+        source={require("../api/files/home1.jpeg")}
+        style={{ width: "100%", height: "90%", borderRadius: 10, marginTop: 5 }}
+      />
       <View style={styles.cardContent}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.location}>{item.location}</Text>
       </View>
     </TouchableOpacity>
   );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerProfile}>
-          <TouchableOpacity style={styles.profileButton}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => navigation.navigate("EditProfile")}
+          >
             <FontAwesome5 name={"user"} size={24} color={"#fff"} />
           </TouchableOpacity>
           <View style={styles.titleText}>
-            <Text style={styles.titleHeader}>Hi, Oli</Text>
-            <Text style={styles.paragraphHeader}>Agent</Text>
+            <Text style={styles.titleHeader}>Hi, {user ? user.name : ""}</Text>
+
+            <Text style={styles.paragraphHeader}>
+              {user ? user.typeofUser : ""}
+            </Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.notificationButton}>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => navigation.navigate("Notification")}
+        >
+          {notificationCount > 1 && (
+            <Badge
+              value={notificationCount}
+              status="error"
+              containerStyle={styles.badge}
+            />
+          )}
           <FontAwesome5 name={"bell"} size={24} color={"#fff"} />
         </TouchableOpacity>
       </View>
@@ -110,7 +209,10 @@ const HomeScreenPrv = () => {
             onSubmitEditing={handleSearch}
           />
 
-          <TouchableOpacity style={styles.filterButton}>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => navigation.navigate("Filter")}
+          >
             <FontAwesome6
               name="sliders"
               size={18}
@@ -121,11 +223,35 @@ const HomeScreenPrv = () => {
         </View>
       </View>
 
-      <FlatList
-        data={data}
-        renderItem={renderCard}
-        keyExtractor={(item) => item._id.toString()}
-      />
+      <Animated.View
+        style={[
+          styles.mainContainer,
+          {
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: pan.y.interpolate({
+              inputRange: [-windowHeight, 0],
+              outputRange: ["100%", "75%"],
+              extrapolate: "clamp",
+            }),
+          },
+        ]}
+      >
+        <View style={styles.gripLine}></View>
+        <View style={styles.gripLine}></View>
+        <FlatList
+          data={data}
+          renderItem={renderCard}
+          keyExtractor={(item) => item._id.toString()}
+          horizontal={!isOpen.current} // Scroll horizontally when not 100% height
+          pagingEnabled={true}
+          showsHorizontalScrollIndicator={false}
+          {...panResponder.panHandlers} // Apply panResponder directly to FlatList
+          style={{ height: isFullOpen ? "100%" : "80%" }}
+        />
+      </Animated.View>
     </View>
   );
 };
@@ -133,16 +259,17 @@ const HomeScreenPrv = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
     backgroundColor: "#000",
   },
   header: {
+    padding: 10,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 40,
     marginBottom: 10,
     paddingHorizontal: 10,
+    height: "10%",
   },
   headerProfile: {
     flexDirection: "row",
@@ -174,9 +301,14 @@ const styles = StyleSheet.create({
     // borderRadius: 5,
     // backgroundColor: "#ddd",
   },
+  badge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+  },
   searchContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    height: "5%",
     marginBottom: 10,
   },
   searchInputContainer: {
@@ -201,6 +333,7 @@ const styles = StyleSheet.create({
     top: "50%",
     transform: [{ translateY: -12 }],
   },
+
   filterButton: {
     width: 30,
     height: 30,
@@ -216,48 +349,48 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -15 }],
   },
 
+  gripLine: {
+    height: 3,
+    backgroundColor: "#000",
+    marginVertical: 2,
+    marginTop: 2,
+    width: "20%",
+    alignSelf: "center",
+  },
   card: {
+    width: 410,
+    height: 600,
     flexDirection: "column",
     alignItems: "center",
-    marginBottom: 10,
     backgroundColor: "#fff",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    overflow: "hidden",
-    position: "relative", // Ensure the card is relative
   },
-  image: {
-    width: "100%",
-    height: 200,
-    resizeMode: "cover",
-  },
+  // image: {
+  //   width: "100%",
+  //   height: 200,
+  //   resizeMode: "cover",
+  // },
   cardContent: {
-    padding: 10,
-    alignSelf: "flex-start", // Align content to start
+    width: "100%",
+    height: "10%",
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
-    textAlign: "left", // Align text to left
+    textAlign: "left",
   },
   location: {
     fontSize: 14,
-    textAlign: "left", // Align text to left
+    textAlign: "left",
   },
-  addButton: {
-    backgroundColor: "grey",
-    width: 30, // Fixed width
-    height: 30, // Fixed height
-    borderRadius: 15, // Half of width and height to make it a circle
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute", // Position the button absolutely
-    bottom: 0, // Align to the bottom
-    right: 0, // Align to the right
-    marginBottom: 5,
-    marginRight: 5,
+
+  mainContainer: {
+    height: "80%",
+    width: "100%",
+    padding: 10,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
   },
 });
 

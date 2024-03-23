@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const cardSchema = new mongoose.Schema({
   image: {
     type: String,
-    required: true,
+    // required: true,
   },
   title: {
     type: String,
@@ -16,10 +16,6 @@ const cardSchema = new mongoose.Schema({
     required: true,
   },
   location: {
-    type: String,
-    required: true,
-  },
-  calendar: {
     type: String,
     required: true,
   },

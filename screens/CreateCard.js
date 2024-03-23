@@ -3,7 +3,6 @@ import { View, TextInput, Button, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 const CreateCard = () => {
   const [image, setImage] = useState(null);
@@ -22,15 +21,9 @@ const CreateCard = () => {
 
     console.log(result);
 
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setImage(result.uri);
     }
-  };
-
-  const handleDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(false);
-    setDate(currentDate);
   };
 
   const handleSubmit = async () => {
@@ -38,13 +31,12 @@ const CreateCard = () => {
       const formData = new FormData();
       formData.append("image", {
         uri: image,
-        type: "image/jpeg", // or whatever MIME type your image is
+        type: "image/jpeg",
         name: "image.jpg",
       });
 
       formData.append("description", description);
       formData.append("location", location);
-      formData.append("calendar", "12/07/2024-18/07/2024");
 
       const response = await fetch("http://192.168.1.40:8000/card/create", {
         method: "POST",
@@ -71,14 +63,7 @@ const CreateCard = () => {
           }}
         />
       )}
-      <DateTimePicker
-        value={date}
-        mode="date"
-        display="default"
-        onChange={handleDateChange}
-        isVisible={showDatePicker}
-      />
-      <Button title="Select Date" onPress={() => setShowDatePicker(true)} />
+
       <TextInput
         placeholder="Location"
         value={location}

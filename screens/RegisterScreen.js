@@ -7,23 +7,49 @@ import {
   Pressable,
   Alert,
   ScrollView,
+  TouchableOpacity,
   Platform,
 } from "react-native";
 
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import DatePickerModal from "../components/DatePickerModal";
+import { getFormatedDate } from "react-native-modern-datepicker";
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState("");
   const [typeofUser, setTypeofUser] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [country, setCountry] = useState("");
   // const [image, setImage] = useState("");
   const navigation = useNavigation();
 
+  const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
+  const [selectedStartDate, setSelectedStartDate] = useState(
+    getFormatedDate(new Date())
+  );
+
+  const startDate = "1960-01-01";
+
+  const handleChangeStartDate = (date) => {
+    setSelectedStartDate(date);
+  };
+
+  const handleOnPressStartDate = () => {
+    setOpenStartDatePicker(!openStartDatePicker);
+  };
+
   const handleRegister = () => {
-    if (!name || !email || !typeofUser || !password) {
+    if (
+      !name ||
+      !email ||
+      !typeofUser ||
+      !password ||
+      !selectedStartDate ||
+      !country
+    ) {
       Alert.alert("Missing Information", "Please fill in all fields.");
       return;
     }
@@ -45,6 +71,8 @@ const RegisterScreen = () => {
       email: email,
       typeofUser: typeofUser,
       password: password,
+      dateOfBirth: selectedStartDate,
+      country: country,
       // image: image,
     };
 
@@ -61,7 +89,8 @@ const RegisterScreen = () => {
         setEmail("");
         setTypeofUser("");
         setPassword("");
-        setImage("");
+        setCountry("");
+        // setImage("");
         // Navigate to the login screen and pass the registered email
         navigation.navigate("Login");
       })
@@ -127,6 +156,32 @@ const RegisterScreen = () => {
                 <Text style={styles.questionMark}>?</Text>
               </Pressable>
             </View>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.labelText}>Birth Date</Text>
+            <TouchableOpacity onPress={handleOnPressStartDate}>
+              <Text style={styles.textInput}>{selectedStartDate}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <DatePickerModal
+            open={openStartDatePicker}
+            onClose={handleOnPressStartDate}
+            startDate={getFormatedDate(startDate)}
+            selectedDate={selectedStartDate}
+            onChangeDate={handleChangeStartDate}
+            setSelectedStartDate={setSelectedStartDate}
+          />
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.labelText}>Country</Text>
+            <TextInput
+              value={country}
+              onChangeText={(text) => setCountry(text)}
+              style={styles.textInput}
+              placeholder="You are from"
+            />
           </View>
 
           <View style={styles.inputContainer}>

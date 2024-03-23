@@ -36,19 +36,26 @@ app.listen(port, () => {
 const User = require("./models/user");
 const CardDb = require("./models/cardDetails");
 
+//importing schema
+require("./models/imageDetails");
+const Images = mongoose.model("ImageDetails");
+
 //endpoint for registration of the user
 
 app.post("/register", (req, res) => {
-  const { name, email, typeofUser, password, image } = req.body;
+  const { name, email, typeofUser, password, image, dateOfBirth, country } =
+    req.body;
 
   // create a new User object
   // create a new User object
   const newUser = new User({
+    image,
     name,
     email,
-    typeofUser,
     password,
-    image,
+    typeofUser,
+    dateOfBirth,
+    country,
     sentFriendRequests: [],
   });
 
@@ -81,48 +88,92 @@ const createToken = (userId) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  //check if the email and password are provided
+  // Check if the email and password are provided
   if (!email || !password) {
-    return res
-      .status(404)
-      .json({ message: "Email and the password are required" });
+    return res.status(400).json({ message: "Email and password are required" });
   }
 
-  //check for that user in the database
+  // Check for that user in the database
   User.findOne({ email })
     .then((user) => {
       if (!user) {
-        //user not found
+        // User not found
         return res.status(404).json({ message: "User not found" });
       }
 
-      //compare the provided passwords with the password in the database
+      // Compare the provided passwords with the password in the database
       if (user.password !== password) {
-        return res.status(404).json({ message: "Invalid Password!" });
+        return res.status(401).json({ message: "Invalid password" });
       }
 
       const token = createToken(user._id);
-      res.status(200).json({ token });
+      // Return the user ID along with the token
+      res.status(200).json({ userId: user._id, token });
+      console.log("User ID", user._id);
+      console.log("User Type", user.typeofUser);
     })
     .catch((error) => {
-      console.log("error in finding the user", error);
-      res.status(500).json({ message: "Internal server Error!" });
+      console.log("Error in finding the user", error);
+      res.status(500).json({ message: "Internal server error" });
     });
+});
+
+//endpoint to get the user who is logged in with the provided ID
+app.get("/user/:userId", (req, res) => {
+  const loggedInUserId = req.params.userId;
+
+  User.findById(loggedInUserId)
+    .then((user) => {
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json(user);
+    })
+    .catch((err) => {
+      console.log("Error retrieving user", err);
+      res.status(500).json({ message: "Error retrieving user" });
+    });
+});
+
+//endpoint to modify the user who is logged in with the provided ID
+app.put("/user/:userId", async (req, res) => {
+  const loggedInUserId = req.params.userId;
+  const { name, email, password, typeofUser, dateOfBirth, country } = req.body;
+
+  try {
+    const user = await User.findById(loggedInUserId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.name = name;
+    user.email = email;
+    user.password = password;
+    user.typeofUser = typeofUser;
+    user.dateOfBirth = dateOfBirth;
+    user.country = country;
+
+    await user.save();
+    res.status(200).json(user);
+  } catch (err) {
+    console.log("Error updating user", err);
+    res.status(500).json({ message: "Error updating user" });
+  }
 });
 
 //endpoint to access all the users except the user who's is currently logged in!
-app.get("/users/:userId", (req, res) => {
-  const loggedInUserId = req.params.userId;
+// app.get("/users/:userId", (req, res) => {
+//   const loggedInUserId = req.params.userId;
 
-  User.find({ _id: { $ne: loggedInUserId } })
-    .then((users) => {
-      res.status(200).json(users);
-    })
-    .catch((err) => {
-      console.log("Error retrieving users", err);
-      res.status(500).json({ message: "Error retrieving users" });
-    });
-});
+//   User.find({ _id: { $ne: loggedInUserId } })
+//     .then((users) => {
+//       res.status(200).json(users);
+//     })
+//     .catch((err) => {
+//       console.log("Error retrieving users", err);
+//       res.status(500).json({ message: "Error retrieving users" });
+//     });
+// });
 
 //endpoint to send a request to a user
 app.post("/friend-request", async (req, res) => {
@@ -212,15 +263,13 @@ app.get("/accepted-friends/:userId", async (req, res) => {
 
 const multer = require("multer");
 
-// Configure multer for handling file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "files/"); // Specify the desired destination folder
+    cb(null, "files/");
   },
   filename: function (req, file, cb) {
-    // Generate a unique filename for the uploaded file
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
+    const uniqueSuffix = Date.now();
+    cb(null, uniqueSuffix + file.originalname);
   },
 });
 
@@ -264,6 +313,40 @@ app.get("/user/:userId", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Update a user
+app.put("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  const { name, email, typeofUser, password, image, dateOfBirth, country } =
+    req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update the user fields
+    user.name = name;
+    user.email = email;
+    user.typeofUser = typeofUser;
+    user.password = password;
+    // user.image = image;
+    user.dateOfBirth = dateOfBirth;
+    user.country = country;
+
+    // Save the updated user
+    await user.save();
+
+    // Log the updated user
+    console.log("Updated user:", user);
+
+    res.status(200).json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
@@ -324,7 +407,6 @@ app.get("/card/search", async (req, res) => {
     const cards = await CardDb.find({
       $or: [
         { title: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
         { location: { $regex: query, $options: "i" } },
       ],
     });
